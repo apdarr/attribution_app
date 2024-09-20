@@ -1,0 +1,20 @@
+<% component.with_sidebar(bg: :accent, p: 6, border_radius: 2) do %>
+       <%= render(Primer::Beta::NavList.new(selected_item_id: :collaborators)) do |list| %>
+            <% list.with_heading(title: "Attribution App") %>
+            <% list.with_item(label: "Business Units", href: "/general") do |item| %>
+                <% item.with_leading_visual_icon(icon: :gear) %>
+            <% end %>
+            <% list.with_group do |group| %>
+                <% group.with_heading(title: "Billing Months") %>
+
+                <% BillingMonth.select(:billing_month).distinct.pluck(:billing_month).each do |month| %>
+                    <% group.with_item(label: month, href: "/billing_months/#{month}", selected_by_ids: month) do |item| %>
+                        <% item.with_leading_visual_icon(icon: :calendar) %>
+                    <% end %>
+                <% end %>
+            <% end %>
+            <% list.with_item do %>
+                <%= render(Primer::Beta::Button.new(scheme: :primary)) {"Upload Usage Report"} %>
+            <% end %>
+        <% end %>
+<% end %>

@@ -1,0 +1,77 @@
+<%= render(Primer::Alpha::Layout.new) do |component| %>
+   <% component.with_main(p: 6) do %>
+        <%= render(Primer::Beta::Breadcrumbs.new) do |component| %>
+           <% @bread_crumbs.each do |i| %>
+                <% component.with_item(href: i) { "#{i}" } %>
+            <% end %>
+        <% end %>
+    <% end %>
+    <% component.with_sidebar(visibility: :hidden) %>
+<% end %>
+
+<%= render(Primer::Alpha::Layout.new) do |component| %>
+    <% component.with_sidebar(bg: :accent, p: 6, border_radius: 2) do %>
+       <%= render(Primer::Beta::NavList.new(selected_item_id: :collaborators)) do |list| %>
+            <% list.with_heading(title: "Attribution App") %>
+            <% list.with_item(label: "Business Units", href: new_business_unit_path) do |item| %>
+                <% item.with_leading_visual_icon(icon: :gear) %>
+            <% end %>
+            <% list.with_group do |group| %>
+                <% group.with_heading(title: "Billing Months") %>
+
+                <% BillingMonth.select(:billing_month).distinct.pluck(:billing_month).each do |month| %>
+                    <% group.with_item(label: month, href: "/billing_months/#{month}", selected_by_ids: month) do |item| %>
+                        <% item.with_leading_visual_icon(icon: :calendar) %>
+                    <% end %>
+                <% end %>
+            <% end %>
+            <% list.with_item do %>
+                <%= render(Primer::Beta::Button.new(scheme: :primary)) do |component| %>
+                    <% component.with_leading_visual_icon(icon: :upload) %> 
+                    Upload Usage Report
+                <% end %>
+            <% end %>
+        <% end %>
+    <% end %>
+    
+    <% component.with_main(p: 6, bg: :subtle, border_radius: 2) do %>        
+        <div class="Box color-shadow-small">
+            <div class="Box-row">
+                <div class="d-flex flex-justify-between flex-items-center width-full">
+                    <h3 class="m-0"><%=@view_month%> repo costs for <%=@bu_name %></h3>
+                     <%= render(Primer::Beta::Button.new(ml: 6, float: :right, href: "/get", tag: :a)) do |component| %>
+          <% component.with_leading_visual_icon(icon: :download) %>
+            Download .csv
+          <% end %>
+                </div>
+            </div>
+            <div class="Box-row">
+                <p class="mb-0 color-fg-muted">
+                <table class="border border-gray-light table-fixed text-sm rounded-2"  style="border-collapse: separate;">
+                <thead class="bg-gray-light rounded-2">
+                    <tr>
+                        <th scope="col" class="p-3">Repo Name</th>
+                        <th scope="col" class="p-3">Cost</th>
+                        <th scope="col" class="p-3">Services</th>
+                        <th scope="col" class="p-3">Usage Date</th>
+                    </tr>
+                </thead>
+                <tbody class="rounded-2">
+                    <% @repo_cost.each do |r| %>
+                        <tr>
+                            <td scope="row" class="border py-2 px-3"><%= r.repo_name%></td>
+                            <td scope="row" class="border py-2 px-3"><%= r.cost%></td>
+                            <td scope="row" class="border py-2 px-3"><%= r.sku%></td>
+                            <td scope="row" class="border py-2 px-3"></td>
+
+                        </tr>
+                    <% end %>
+                </tbody>
+                </table>    
+            </div>
+            <div class="Box-row">
+                <h5 class="m-0">Pagination</h5>
+            </div>
+        </div>
+    <% end %>
+<% end %>

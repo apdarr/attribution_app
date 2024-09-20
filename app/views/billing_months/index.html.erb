@@ -1,0 +1,36 @@
+<%= render(Primer::Alpha::Layout.new) do |component|
+    component.with_sidebar(bg: :accent, p: 6, border_radius: 2) do 
+        render(Primer::Beta::NavList.new(selected_item_id: :collaborators)) do |list|
+            list.with_heading(title: "Attribution App")
+            list.with_item(label: "Business Units", href: new_business_unit_path) do |item|
+                item.with_leading_visual_icon(icon: :gear)
+            end
+            list.with_group do |group|
+                group.with_heading(title: "Billing Months")
+
+                BillingMonth.select(:billing_month).distinct.pluck(:billing_month).each do |month|
+                    group.with_item(label: month, href: "/billing_months/#{month}", selected_by_ids: month) do |item|
+                        item.with_leading_visual_icon(icon: :calendar)
+                    end
+                end
+            end
+            list.with_item do
+                render(Primer::Beta::Button.new(scheme: :primary)) {"Upload Usage Report"}
+            end 
+        end
+    end
+    component.with_main(p: 6, bg: :subtle, border_radius: 2) do         
+        render(Primer::Alpha::Menu.new) do |component| 
+            component.with_heading(tag: :h2) { "Current month usage" }
+            # Future code when we have an active current month
+            @current_billing_month.each do |bu_id, cost|
+                bu_name = BusinessUnit.find_by(id: bu_id).name
+                component.with_item(href: "/business_unit/#{bu_name}") do 
+                    concat bu_name
+                    concat render(Primer::Beta::Counter.new(scheme: :primary, font_size: 4, font_weight: :bold, text: "$#{cost}"))
+                end
+            end 
+        end
+    end
+end %>
+

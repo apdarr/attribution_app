@@ -1,0 +1,75 @@
+<%= render(Primer::Alpha::Layout.new) do |component|
+    component.with_main(p: 6) do
+        render(Primer::Beta::Breadcrumbs.new(visibility: :hidden)) do |component|
+            Array.new(3) do |i|
+                component.with_item(href: "##{i}") { "Breadcrumb Item #{i + 1}" }
+            end
+        end
+    end
+    component.with_sidebar(visibility: :hidden) do
+        "Text"
+    end
+end %>
+
+<%= render(Primer::Alpha::Layout.new) do |component| %>
+    <% component.with_sidebar(bg: :accent, p: 6, border_radius: 2) do %>
+       <%= render(Primer::Beta::NavList.new(selected_item_id: :collaborators)) do |list| %>
+            <% list.with_heading(title: "Attribution App") %>
+            <% list.with_item(label: "Business Units", href: new_business_unit_path) do |item| %>
+                <% item.with_leading_visual_icon(icon: :gear) %>
+            <% end %>
+            <% list.with_group do |group| %>
+                <% group.with_heading(title: "Billing Months") %>
+
+                <% BillingMonth.select(:billing_month).distinct.pluck(:billing_month).each do |month| %>
+                    <% group.with_item(label: month, href: "/billing_months/#{month}", selected_by_ids: month) do |item| %>
+                        <% item.with_leading_visual_icon(icon: :calendar) %>
+                    <% end %>
+                <% end %>
+            <% end %>
+            <% list.with_item do %>
+                <%= render(Primer::Beta::Button.new(scheme: :primary)) do |component| %>
+                    <% component.with_leading_visual_icon(icon: :upload) %> 
+                    Upload Usage Report
+                <% end %>
+            <% end %>
+        <% end %>
+    <% end %>
+    
+    <% component.with_main(p: 6, bg: :subtle, border_radius: 2) do %>        
+        <div class="Box color-shadow-small">
+            <div class="Box-row">
+                <div class="d-flex flex-justify-between flex-items-center width-full">
+                    <h3 class="m-0">Define a new Business Unit prefix</h3>
+                </div>
+                <p>If a GitHub custom property matches a prefix, the app will create a new Business Unit</p>
+            </div>
+            <%= form_with url: business_units_path, method: :post, local: true do |form| %>
+                <div class="Box-row">
+                    <p class="mb-0 color-fg-muted">
+                    <%= render(Primer::Alpha::TextField.new(name: "prefix", label: "Define business unit prefix")) %>
+                    </p>
+                    <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary)) do %>
+                    Submit
+                    <% end %>
+                </div>
+            <% end %>
+            <div class="Box-row">
+                <h5 class="m-0">Existing Business Units</h5>
+                <div class="d-flex flex-wrap mt-1">
+                    <% BusinessUnit.all.each do |bu| %>
+                        <div class="d-flex flex-wrap mr-1">
+                            <%=render(Primer::Beta::State.new(title: "Default")) { "#{bu.name}" }%>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+            <div class="Box-row">
+                <h5 class="m-0">Set prefix</h5>
+                <div class="d-flex flex-wrap mt-1">
+                    <%=render(Primer::Beta::State.new(title: "Default", scheme: :merged)) { "#{@current_prefix}" }%>
+                </div>
+            </div>
+        </div>
+    <% end %>
+<% end %>

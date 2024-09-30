@@ -35,6 +35,10 @@ class UsageReportWorker
     
     if ENV["ORG_FILTER"]
       filtered_data = response_body["usageItems"].select{ |report| report["organizationName"] == ENV["ORG_FILTER"] }
+      # Grab the unique repository names from the filtered data
+      unique_repo_names = filtered_data.map{ |report| report["repositoryName"] }.uniq
+      # Send the repo names to BusinessUnitWorker to fetch the business units
+      !unique_repo_names.empty? ? BusinessUnitWorker.perform(unique_repo_names) : nil
     else 
       filtered_data = response_body["usageItems"]
     end

@@ -7,7 +7,7 @@ class BusinessUnitWorker
     begin
       repo_names.each do |repo_name|
         # Find the repo's business unit membership via tags
-        uri = URI.parse("https://api.github.com/repos/OWNER/REPO/topics")
+        uri = URI.parse("https://api.github.com/repos/#{ENV["ORG_FILTER"]}/#{repo_name}/topics")
         request = Net::HTTP::Get.new(uri)
         request["Accept"] = "application/vnd.github.v3+json"
         request["Authorization"] = "Bearer #{ENV['GITHUB_TOKEN']}"

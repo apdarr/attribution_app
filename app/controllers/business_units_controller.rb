@@ -11,6 +11,7 @@ class BusinessUnitsController < ApplicationController
   end
 
   def new
+    # A bit hacky but for now we can just store the prefix on the first business unit
     @current_prefix = BusinessUnit.first.prefix ? BusinessUnit.first.prefix : "bu_"
   end
 

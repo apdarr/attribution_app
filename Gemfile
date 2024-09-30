@@ -12,12 +12,7 @@ gem "sprockets-rails"
 
 gem "primer_view_components"
 
-#gem 'sassc-rails'
-
-#gem "sass-rails"
-
 gem "dartsass-rails", "~> 0.5.0"
-
 
 # Use sqlite3 as the database for Active Record
 gem "sqlite3", "~> 1.4"
@@ -28,6 +23,7 @@ gem "puma", "~> 5.0"
 # Use Postgres for DB
 gem "pg"
 
+# Enables batch inserts for ActiveRecord
 gem "activerecord-import"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

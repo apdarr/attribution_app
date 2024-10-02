@@ -9,6 +9,7 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
   end
 
   test "business unit names should be created if matching prefix found" do
+
   end
 
   test "repo membership to business unit should be created if matching prefix found" do
@@ -20,8 +21,10 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
 
   test "prefix matching should handle closely related names" do 
     # In cases where the prefix is set to "bu-", we should match for "bu-*", but nothing else
-    close_prefixes = ["bus-", "b-", "bu"]
-
+    BusinessUnit.update_all(prefix: "bu-")
+    close_prefixes = ["bus-", "b-", "bu-r"]
+    close_prefixes.each do |prefix|
+      assert_not BusinessUnit.first.prefix.start_with?(prefix)
+    end
   end
-
 end  

@@ -9,7 +9,13 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
   end
 
   test "business unit names should be created if matching prefix found" do
-
+    # Update the prefix, as someone would in a view
+    BusinessUnit.update_all(prefix: "bu-")
+    # Assert that no business unit exists with the name "ops"
+    assert_not BusinessUnit.find_by(name: "ops").present?
+    # After the worker runs, the repo should exist
+    BusinessUnitWorker.assign_repo_to_business_unit(@seed_data, "repo1")
+    assert BusinessUnit.find_by(name: "ops").present?
   end
 
   test "repo membership to business unit should be created if matching prefix found" do

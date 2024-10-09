@@ -4,6 +4,8 @@ require 'json'
 
 class BusinessUnitWorker
   def self.perform(repo_names)
+    raise URI::InvalidURIError, "ORG_FILTER environment variable is not set" if ENV["ORG_FILTER"].nil?
+
     begin
       repo_names.each do |repo_name|
         # Find the repo's business unit membership via tags

@@ -24,10 +24,13 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
     assert_not_nil repo.business_unit_id
   end
 
-  test "worker should error if no org filter is set" do 
-    # We need to know the org name to filter on for fetching repo topics and properties
+  test "worker should error if no org filter is set" do
+    ENV["ORG_FILTER"] = nil
+    assert_raises(URI::InvalidURIError) do
+      BusinessUnitWorker.perform(["repo_foo"])
+    end 
   end
-
+   
   test "prefix matching should handle closely related names" do 
     # In cases where the prefix is set to "bu-", we should match for "bu-*", but nothing else
     close_prefixes = ["bus-", "b-", "bu-r"]

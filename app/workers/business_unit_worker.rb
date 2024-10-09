@@ -38,8 +38,6 @@ class BusinessUnitWorker
         repo.update(business_unit_id: business_unit.id)
         # A repo should only have one matching Business Unit, so we break out of the loop
         break
-      else
-         puts "No matching prefix found for Business Unit #{name}"
       end
     end
   end

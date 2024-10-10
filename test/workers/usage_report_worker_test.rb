@@ -75,6 +75,7 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
     # Rerun the job and validate that we have the right date for PollingStatus
     # We've added new data, so now let's run it again
     UsageReportWorker.parse_and_update(@seed_data)
+    debugger
     assert PollingStatus.first.usage_worker_checked_identifier, "2024-08-22T14:00:00Z_veriks-setup_ursa-minus_Actions Linux"
     # Check that the new costs were added
     assert_equal initial_repo_cost_count + 2, RepoCost.count

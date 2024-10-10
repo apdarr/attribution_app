@@ -38,8 +38,10 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
 
   test "polling_status_should resume from last checked identifier" do
     # Given an arbitrary "stop" date, we want to simulate the worker picking up from where it left off
-  
-    # First pass, without the new records
+    RepoCost.destroy_all
+    # Ensure that the RepoCost table is empty
+    assert_equal 0, RepoCost.count
+    
     UsageReportWorker.parse_and_update(@seed_data)
     initial_repo_cost_count = RepoCost.count
     new_records = [

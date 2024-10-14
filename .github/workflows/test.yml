@@ -3,7 +3,7 @@ name: Test Suite
 on:
   push:
     branches:
-      - workflow
+      - iss-*
   pull_request:
     branches:
       - main

@@ -38,8 +38,9 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
 
   test "polling_status_should resume from last checked identifier" do
     # Given an arbitrary "stop" date, we want to simulate the worker picking up from where it left off
-  
-    # First pass, without the new records
+    RepoCost.destroy_all
+    # Ensure that the RepoCost table is empty
+    assert_equal 0, RepoCost.count    
     UsageReportWorker.parse_and_update(@seed_data)
     initial_repo_cost_count = RepoCost.count
     new_records = [
@@ -74,7 +75,12 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
     @seed_data["usageItems"].concat(new_records)
     # Rerun the job and validate that we have the right date for PollingStatus
     # We've added new data, so now let's run it again
+    
+    # 🧪 Stub the creation of this step, since it'll happen in a separate worker process
+    Repo.create(name: "verisk-setup", business_unit_id: 2)
+    Repo.create(name: "actions-ci-cd", business_unit_id: 2)
     UsageReportWorker.parse_and_update(@seed_data)
+
     assert PollingStatus.first.usage_worker_checked_identifier, "2024-08-22T14:00:00Z_veriks-setup_ursa-minus_Actions Linux"
     # Check that the new costs were added
     assert_equal initial_repo_cost_count + 2, RepoCost.count
@@ -83,7 +89,7 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
   test "UsageReportWorker should create new records in the database" do
     UsageReportWorker.parse_and_update(@seed_data)
   
-    repo = Repo.find_by(name: "actions-ci-cd")
+    repo = Repo.find_by(name: "victorious-scorpion-8969")
     assert repo
     
     billing_month = BillingMonth.last
@@ -92,7 +98,6 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
     # Ensure that the repo costs were saved correctly by referencing a total sum
     # Convert BigDecimal to a float
     january_2024_cost = BillingMonth.monthly_repo_sum(repo.name, "January 2024").to_f
-    puts "January 2024 cost: #{january_2024_cost}"
     assert_equal january_2024_cost, 2.29
   end
 end

@@ -35,14 +35,19 @@ class UsageReportWorker
     
     if ENV["ORG_FILTER"]
       filtered_data = response_body["usageItems"].select{ |report| report["organizationName"] == ENV["ORG_FILTER"] }
+      # Grab the unique repository names from the filtered data
+      unique_repo_names = filtered_data.map{ |report| report["repositoryName"] }.uniq
+      # Send the repo names to BusinessUnitWorker to fetch the business units
+      !unique_repo_names.empty? ? BusinessUnitWorker.perform(unique_repo_names) : nil
     else 
       filtered_data = response_body["usageItems"]
     end
-
+    
     last_polling_status = PollingStatus.first_or_create
     # Strip out any reports with empty repository names or organization names
     filtered_data = filtered_data.select{ |report| report["repositoryName"] != "" && report["organizationName"] != "" }
     total_items = filtered_data.length
+    
     filtered_data.each_with_index do |report, index|
       repo_name = report["repositoryName"]
       date = Date.parse(report["date"]).strftime("%B %Y")
@@ -50,50 +55,51 @@ class UsageReportWorker
       sku = report["sku"]
       
       current_polling_status = "#{report["date"]}_#{report["repositoryName"]}_#{report["organizationName"]}_#{report["sku"]}"
-
-      # Check to see if our "cursor" is at the last checked value
-      # If it is, that means we've already saved the data to the database. So we skip to the next usage report
+      
       if last_polling_status.usage_worker_checked_identifier == current_polling_status
         new_data = true
         # Skip the current record, as we've already saved it to the database
         next
       end
       
-      # If this is is nil, then we're starting from scratch and should save the records
-      # There's an opportunity for refactor here, as the logic is the same as the first condition
+      # if ["test", "development"].include?(Rails.env)
+      #   puts "Parsing record: #{index + 1} of #{total_items}"
+      # end
+      # Approach D
       if last_polling_status.usage_worker_checked_identifier == nil
         records << { repo_name: repo_name, date: date, cost: cost, sku: sku }
-        process_records(records, batch_size, index, current_polling_status, last_polling_status, total_items)
-      # Otherwise, we're resuming from a previous run and should save the records if batch conditions are met  
+        if records.size >= batch_size
+          update_records(records)
+          records.clear
+        elsif index + 1 == total_items
+          update_records(records)
+          records.clear
+        end
       elsif new_data
         records << { repo_name: repo_name, date: date, cost: cost, sku: sku }
-        process_records(records, batch_size, index, current_polling_status, last_polling_status, total_items)
+        if records.size >= batch_size
+          update_records(records)
+          records.clear
+        elsif index + 1 == total_items
+          update_records(records)
+          records.clear
+        end
       end
-    end
-  end
-
-  def self.process_records(records, batch_size, index, current_polling_status, last_polling_status, total_items)
-    if records.size >= batch_size
-      update_records(records)
-      records.clear
-    elsif total_items == index + 1
-      update_records(records)
-      last_polling_status.update!(usage_worker_checked_identifier: current_polling_status)
-      records.clear
+      if total_items == index + 1 
+        last_polling_status.update!(usage_worker_checked_identifier: current_polling_status)
+      end
     end
   end
 
   def self.update_records(records)
     repo_costs = []
-  
     records.each do |record|
-      ### 🧪 Temporary logic to fetch the BusinessUnit ID
+      ### 🧪 Temporary logic to fetch the BusinessUnit ID, which we're using in test
       repo = Repo.find_or_create_by(name: record[:repo_name])
       business_unit_id = repo.business_unit_id
-      ### 🧪 Temporary logic to fetch the BusinessUnit ID
-
+      ### 🧪 Temporary logic to fetch the BusinessUnit ID, which we're using in test
+      
       billing_month = BillingMonth.find_or_create_by(business_unit_id: business_unit_id, billing_month: record[:date])
-  
       repo_costs << RepoCost.new(
         repo_name: record[:repo_name],
         repo_id: repo.id,
@@ -102,7 +108,6 @@ class UsageReportWorker
         cost: record[:cost]
       )
     end
-    
     # Use activerecord-import gem to save in bulk
     RepoCost.import(repo_costs)
   end

@@ -20,7 +20,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_DB: attribution_app_test
         options: >-
           --health-cmd="pg_isready -U postgres"
           --health-interval=10s

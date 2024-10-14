@@ -40,8 +40,7 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
     # Given an arbitrary "stop" date, we want to simulate the worker picking up from where it left off
     RepoCost.destroy_all
     # Ensure that the RepoCost table is empty
-    assert_equal 0, RepoCost.count
-    
+    assert_equal 0, RepoCost.count    
     UsageReportWorker.parse_and_update(@seed_data)
     initial_repo_cost_count = RepoCost.count
     new_records = [
@@ -76,8 +75,12 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
     @seed_data["usageItems"].concat(new_records)
     # Rerun the job and validate that we have the right date for PollingStatus
     # We've added new data, so now let's run it again
+    
+    # 🧪 Stub the creation of this step, since it'll happen in a separate worker process
+    Repo.create(name: "verisk-setup", business_unit_id: 2)
+    Repo.create(name: "actions-ci-cd", business_unit_id: 2)
     UsageReportWorker.parse_and_update(@seed_data)
-    debugger
+
     assert PollingStatus.first.usage_worker_checked_identifier, "2024-08-22T14:00:00Z_veriks-setup_ursa-minus_Actions Linux"
     # Check that the new costs were added
     assert_equal initial_repo_cost_count + 2, RepoCost.count

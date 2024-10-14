@@ -55,14 +55,6 @@ class UsageReportWorker
       sku = report["sku"]
       
       current_polling_status = "#{report["date"]}_#{report["repositoryName"]}_#{report["organizationName"]}_#{report["sku"]}"
-
-      # Check to see if our "cursor" is at the last checked value
-      # If it is, that means we've already saved the data to the database. So we skip to the next usage report
-      if ["test", "development"].include?(Rails.env)
-        puts "Current Polling Status: #{current_polling_status}"
-        puts "Last Polling Status: #{last_polling_status.usage_worker_checked_identifier}"
-        puts "value of new_data: #{new_data}"
-      end
       
       if last_polling_status.usage_worker_checked_identifier == current_polling_status
         new_data = true
@@ -70,9 +62,9 @@ class UsageReportWorker
         next
       end
       
-      if ["test", "development"].include?(Rails.env)
-        puts "Parsing record: #{index + 1} of #{total_items}"
-      end
+      # if ["test", "development"].include?(Rails.env)
+      #   puts "Parsing record: #{index + 1} of #{total_items}"
+      # end
       # Approach D
       if last_polling_status.usage_worker_checked_identifier == nil
         records << { repo_name: repo_name, date: date, cost: cost, sku: sku }

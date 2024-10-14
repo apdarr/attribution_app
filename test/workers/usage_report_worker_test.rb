@@ -89,7 +89,7 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
   test "UsageReportWorker should create new records in the database" do
     UsageReportWorker.parse_and_update(@seed_data)
   
-    repo = Repo.find_by(name: "actions-ci-cd")
+    repo = Repo.find_by(name: "victorious-scorpion-8969")
     assert repo
     
     billing_month = BillingMonth.last
@@ -98,7 +98,6 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
     # Ensure that the repo costs were saved correctly by referencing a total sum
     # Convert BigDecimal to a float
     january_2024_cost = BillingMonth.monthly_repo_sum(repo.name, "January 2024").to_f
-    puts "January 2024 cost: #{january_2024_cost}"
     assert_equal january_2024_cost, 2.29
   end
 end

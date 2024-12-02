@@ -42,6 +42,17 @@ jobs:
         gem install bundler
         bundle install
 
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.10.0'
+
+    - name: Install JavaScript dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Build CSS
+      run: yarn css-build  
+
     - name: Set up database
       run: |
         bundle exec rails db:create

@@ -51,7 +51,7 @@ jobs:
       run: yarn install --frozen-lockfile
 
     - name: Build CSS
-      run: yarn css:build  
+      run: yarn build:css  
 
     - name: Set up database
       run: |

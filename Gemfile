@@ -15,13 +15,13 @@ gem "primer_view_components"
 gem "dartsass-rails", "~> 0.5.0"
 
 # Use sqlite3 as the database for Active Record
-gem "sqlite3", "~> 1.4"
+gem "sqlite3"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma"
 
 # Use Postgres for DB
-gem "pg"
+#gem "pg"
 
 # Enables batch inserts for ActiveRecord
 gem "activerecord-import"

@@ -49,7 +49,7 @@ jobs:
 
     - name: Install JavaScript dependencies
       run: yarn install --frozen-lockfile
-
+    
     - name: Build CSS
       run: yarn build:css  
 

@@ -21,7 +21,7 @@ gem "sqlite3"
 gem "puma"
 
 # Use Postgres for DB
-#gem "pg"
+gem "pg"
 
 # Enables batch inserts for ActiveRecord
 gem "activerecord-import"

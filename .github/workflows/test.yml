@@ -1,9 +1,6 @@
 name: Test Suite
 
 on:
-  push:
-    branches:
-      - iss-*
   pull_request:
     branches:
       - main
@@ -43,7 +40,7 @@ jobs:
     - name: Install dependencies
       run: |
         gem install bundler
-        bundle install --jobs 4 --retry 3
+        bundle install
 
     - name: Set up database
       run: |

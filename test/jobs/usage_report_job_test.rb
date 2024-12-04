@@ -1,29 +1,28 @@
 require "test_helper"
 require "json"
-require "debug"
 
-class UsageReportWorkerTest < ActiveSupport::TestCase
+class UsageReportJobTest < ActiveJob::TestCase
   def setup
     # Load in the seed JSON data
     json_data = File.read(Rails.root.join("db", "usage_report_seed.json"))
     @seed_data = JSON.parse(json_data)
 
-    # Parse through the JSON data and randomly assign a business unit to each repo
+    # Create business units
     BusinessUnit.find_or_create_by(id: 1) do |bu|
       bu.name = "bu_ops"
     end
     
     BusinessUnit.find_or_create_by(id: 2) do |bu|
-        bu.name = "bu_finance"
+      bu.name = "bu_finance"
     end
     
     BusinessUnit.find_or_create_by(id: 3) do |bu|
-        bu.name = "bu_it"
+      bu.name = "bu_it"
     end
 
+    # Assign repos to business units
     @seed_data["usageItems"].each_with_index do |item, index|
       repo = item["repositoryName"]
-      # Randomly assign the repo to a business unit based on the .each block's index
       business_unit = if index % 2 == 0
         BusinessUnit.find_by(id: 1)
       elsif index % 3 == 0
@@ -31,18 +30,28 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
       else
         BusinessUnit.find_by(id: 3)
       end
-
       repo = Repo.find_or_create_by(name: repo, business_unit_id: business_unit.id)
     end
+    
+    @job = UsageReportJob.new
+    
+    # we're stubbing the fetch_api_data method to return our test data
+    class << @job
+      attr_accessor :test_data
+      def fetch_api_data
+        self.test_data
+      end
+    end
+    @job.test_data = @seed_data
   end
 
   test "polling_status_should resume from last checked identifier" do
-    # Given an arbitrary "stop" date, we want to simulate the worker picking up from where it left off
     RepoCost.destroy_all
-    # Ensure that the RepoCost table is empty
     assert_equal 0, RepoCost.count    
-    UsageReportWorker.parse_and_update(@seed_data)
+
+    @job.perform_now
     initial_repo_cost_count = RepoCost.count
+    
     new_records = [
       {
         "date" => "2024-08-20T14:00:00Z",
@@ -69,35 +78,38 @@ class UsageReportWorkerTest < ActiveSupport::TestCase
         "netAmount" => 0.112,
         "organizationName" => "ursa-minus",
         "repositoryName" => "verisk-setup"
-      },
+      }
     ]
-    # Add the new records to the seed data
-    @seed_data["usageItems"].concat(new_records)
-    # Rerun the job and validate that we have the right date for PollingStatus
-    # We've added new data, so now let's run it again
     
-    # 🧪 Stub the creation of this step, since it'll happen in a separate worker process
+    @seed_data["usageItems"].concat(new_records)
+    
+    # Create repos needed for test
     Repo.create(name: "verisk-setup", business_unit_id: 2)
     Repo.create(name: "actions-ci-cd", business_unit_id: 2)
-    UsageReportWorker.parse_and_update(@seed_data)
 
-    assert PollingStatus.first.usage_worker_checked_identifier, "2024-08-22T14:00:00Z_veriks-setup_ursa-minus_Actions Linux"
-    # Check that the new costs were added
+    @job.perform_now  # No need for JSON regeneration, just use the modified @seed_data
+
+    assert_equal "2024-08-22T14:00:00Z_verisk-setup_ursa-minus_Actions Linux", 
+                 PollingStatus.first.usage_worker_checked_identifier
     assert_equal initial_repo_cost_count + 2, RepoCost.count
   end
 
-  test "UsageReportWorker should create new records in the database" do
-    UsageReportWorker.parse_and_update(@seed_data)
+  test "job should create new records in the database" do
+    @job.perform_now
   
     repo = Repo.find_by(name: "victorious-scorpion-8969")
     assert repo
     
     billing_month = BillingMonth.last
-    assert_equal billing_month.billing_month, "August 2024"
+    assert_equal "August 2024", billing_month.billing_month
         
-    # Ensure that the repo costs were saved correctly by referencing a total sum
-    # Convert BigDecimal to a float
     january_2024_cost = BillingMonth.monthly_repo_sum(repo.name, "January 2024").to_f
-    assert_equal january_2024_cost, 2.29
+    assert_equal 2.29, january_2024_cost
+  end
+
+  test "job can be enqueued" do
+    assert_enqueued_jobs 0
+    UsageReportJob.perform_later
+    assert_enqueued_jobs 1
   end
 end

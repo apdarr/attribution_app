@@ -1,14 +1,12 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: bu_ops
-  repos: ["foo-ubuntu"]
+  id: 1
+  name: "bu_ops"
 
 two:
-  name: bu_it
-  repos: ["foo-windows"]
+  id: 2
+  name: "bu_finance"
 
-three: 
-  name: bu_eng
-  repos: ["foo-macos"]
-
+three:
+  id: 3
+  name: "bu_it"

@@ -1,17 +1,9 @@
-require 'net/http'
-require 'uri'
+class UsageReportJob < ApplicationJob
+  queue_as :default
 
-class UsageReportWorker
-  def self.perform
+  def perform
     begin
-      uri = URI.parse("https://api.github.com/enterprises/#{ENV["ENTERPRISE_SLUG"]}/settings/billing/usage")
-      request = Net::HTTP::Get.new(uri)
-      request["Accept"] = "application/vnd.github.v3+json"
-      request["Authorization"] = "Bearer #{ENV['GITHUB_TOKEN']}"
-
-      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-        http.request(request)
-      end
+      response_body = fetch_api_data
       
       #### 🧪 For testing purposes, creating the JSON file to parse 
       File.open("usage_report.json", "w") do |f|
@@ -19,15 +11,28 @@ class UsageReportWorker
       end
       ### 🧪
 
-      # Parse, turn the response body into a hash
-      response_body = JSON.parse(response.body)
       parse_and_update(response_body)
     rescue StandardError => e
        puts "Failed to fetch the API: #{e}"
     end
   end
 
-  def self.parse_and_update(response_body)
+  private 
+
+  def fetch_api_data
+    uri = URI.parse("https://api.github.com/enterprises/#{ENV["ENTERPRISE_SLUG"]}/settings/billing/usage")
+    request = Net::HTTP::Get.new(uri)
+    request["Accept"] = "application/vnd.github.v3+json"
+    request["Authorization"] = "Bearer #{ENV['GITHUB_TOKEN']}"
+
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(request)
+    end
+    
+    JSON.parse(response)
+  end
+
+  def parse_and_update(response_body)
     # Manage state to determine if we've already saved the data from the API
     new_data = false
     batch_size = 500
@@ -91,7 +96,7 @@ class UsageReportWorker
     end
   end
 
-  def self.update_records(records)
+  def update_records(records)
     repo_costs = []
     records.each do |record|
       ### 🧪 Temporary logic to fetch the BusinessUnit ID, which we're using in test

@@ -12,6 +12,8 @@ gem "sprockets-rails"
 
 gem "primer_view_components"
 
+gem "octokit"
+
 gem "dartsass-rails", "~> 0.5.0"
 
 # Use sqlite3 as the database for Active Record
@@ -33,6 +35,8 @@ group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
   gem "dotenv"
+  gem "vcr"
+  gem "webmock"
 end
 
 group :development do

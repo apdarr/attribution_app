@@ -137565,32 +137565,6 @@
       "netAmount": 0.0,
       "organizationName": "original-marten-2033",
       "repositoryName": "welcomed-aardvark-8618"
-    },
-    {
-      "date": "2024-08-20T14:00:00Z",
-      "product": "actions",
-      "sku": "Actions Linux",
-      "quantity": 31.0,
-      "unitType": "Minutes",
-      "pricePerUnit": 0.008,
-      "grossAmount": 0.248,
-      "discountAmount": 0.0,
-      "netAmount": 0.248,
-      "organizationName": "ursa-minus",
-      "repositoryName": "actions-ci-cd"
-    },
-    {
-      "date": "2024-08-22T14:00:00Z",
-      "product": "actions",
-      "sku": "Actions Linux",
-      "quantity": 14.0,
-      "unitType": "Minutes",
-      "pricePerUnit": 0.008,
-      "grossAmount": 0.112,
-      "discountAmount": 0.0,
-      "netAmount": 0.112,
-      "organizationName": "ursa-minus",
-      "repositoryName": "verisk-setup"
     }
   ]
 }

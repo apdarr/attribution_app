@@ -18,7 +18,7 @@ class BusinessUnitJobTest < ActiveJob::TestCase
     # #   end
     # # end
     # # @job.test_data = @seed_data
-    # @repo_names = ["repo_foo"]
+    @repo_names = ["repo_foo"]
   end
 
   test "business unit names should be created if matching prefix found" do
@@ -30,7 +30,9 @@ class BusinessUnitJobTest < ActiveJob::TestCase
   end
 
   test "repo membership to business unit should be created if matching prefix found" do
-    @job.perform_now(@repo_names)
+    VCR.use_cassette("business_unit_job") do
+      BusinessUnitJob.perform_now
+    end
     repo = Repo.find_by(name: "repo_foo")
     assert_not_nil repo.business_unit_id
   end
@@ -38,13 +40,17 @@ class BusinessUnitJobTest < ActiveJob::TestCase
   test "job should error if no org filter is set" do
     ENV["ORG_FILTER"] = nil
     assert_raises(URI::InvalidURIError) do
-      @job.perform_now(@repo_names)
+      VCR.use_cassette("business_unit_job") do
+        BusinessUnitJob.perform_now
+      end
     end 
   end
 
   test "job can be enqueued" do
     assert_enqueued_jobs 0
-    BusinessUnitJob.perform_later(@repo_names)
+    VCR.use_cassette("business_unit_job") do
+      BusinessUnitJob.perform_later
+    end
     assert_enqueued_jobs 1
   end
 end

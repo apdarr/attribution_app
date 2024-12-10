@@ -4,6 +4,7 @@ class BusinessUnitJob < ApplicationJob
   def initialize
     @client = Octokit::Client.new(:access_token => ENV['GITHUB_TOKEN'])
   end
+  
   # Expects an array of repo name strings to be passed as arguments
   def perform
     raise URI::InvalidURIError, "ORG_FILTER environment variable is not set" if ENV["ORG_FILTER"].nil?
@@ -20,19 +21,19 @@ class BusinessUnitJob < ApplicationJob
   def fetch_repo_topics
     # Get a list of repo names first
     org_repos = @client.org_repos(ENV["ORG_FILTER"]).map { |r| r.name }
-    debugger
+    topics = []
+    # Iterate over each name and fetch the topics
     org_repos.each do |r|
-      repo_name = r.name
-      topics = @client.topics("#{ENV["ORG_FILTER"]}/#{r}")
+      r_topics = @client.topics("#{ENV["ORG_FILTER"]}/#{r}")
+      topics << r_topics
     end
-    topics = @client.topics("#{ENV["ORG_FILTER"]}/#{repo_name}")
-    topics
+  topics
   end
 
   # This function does two important things before processing the usage cost data in UsageReportWorker:
   # 1) It assigns a Business Unit to each repo based on the repo's topic
   # 2) It creates the Repo in the database if it doesn't already exist
-  def assign_repo_to_business_unit(topics, repo_name)
+  def assign_repo_to_business_unit(topics)
     repo = Repo.find_or_create_by(name: repo_name)
     # For now, just grab the first matching prefix from the list and assign
     response_body["names"].each do |name|
